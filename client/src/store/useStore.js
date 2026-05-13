@@ -24,7 +24,7 @@ export const useStore = create((set, get) => ({
         api.get('/orders/staff')
       ]);
       set({ 
-        menus: menuRes.data, 
+        menus: menuRes.data.menus, // AMBIL ARRAY MENUS NYA SAJA
         tables: tableRes.data, 
         orders: orderRes.data,
         loading: false 
