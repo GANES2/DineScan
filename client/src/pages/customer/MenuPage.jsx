@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { ShoppingCart, Plus, Minus, Search, Utensils } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Search, Utensils, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const MenuPage = () => {
   const { tableCode } = useParams();
-  const { menus, cart, activeTable, setActiveTable, addToCart, updateQuantity } = useStore();
+  const { menus, cart, activeTable, setActiveTable, addToCart, updateQuantity, loading } = useStore();
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
 
@@ -15,15 +15,22 @@ const MenuPage = () => {
     if (tableCode) setActiveTable(tableCode);
   }, [tableCode]);
 
-  const filteredMenus = menus.filter(m => 
-    (category === 'All' || m.category === category) &&
+  const filteredMenus = (menus || []).filter(m => 
+    (category === 'All' || m.category?.name === category) &&
     (m.name.toLowerCase().includes(search.toLowerCase()))
   );
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  if (!activeTable && tableCode) return <div className="p-10 text-center">Meja tidak ditemukan.</div>;
+  if (loading || (!activeTable && tableCode)) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 space-y-4">
+        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+        <p className="text-sm font-bold text-gray-400">Menghubungkan ke Meja {tableCode}...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -32,7 +39,9 @@ const MenuPage = () => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-black text-[#0B1220]">DineScan</h1>
-            <p className="text-xs text-orange-500 font-bold uppercase tracking-widest">Table: {activeTable?.code || 'None'}</p>
+            <p className="text-xs text-orange-500 font-bold uppercase tracking-widest">
+              Table: <span className="text-[#0B1220]">{activeTable?.tableNumber || tableCode}</span>
+            </p>
           </div>
           <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white">
             <Utensils size={20} />
