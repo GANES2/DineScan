@@ -18,6 +18,8 @@ router.post('/', async (req, res) => {
       data: {
         orderNumber,
         tableId,
+        customerName: req.body.customerName,
+        customerPhone: req.body.customerPhone,
         totalAmount,
         paymentMethod,
         orderStatus,

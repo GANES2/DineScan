@@ -166,15 +166,15 @@ const AdminDashboard = () => {
                 <tbody className="divide-y divide-gray-100">
                   {orders.map(order => (
                     <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-[10px] text-gray-400">{order.id}</td>
+                      <td className="px-6 py-4 font-mono text-[10px] text-gray-400">{order.orderNumber}</td>
                       <td className="px-6 py-4">
-                        <p className="font-bold text-sm">{order.customerName}</p>
-                        <p className="text-[10px] text-orange-500 font-bold">{order.customerPhone}</p>
+                        <p className="font-bold text-sm">{order.customerName || 'Pelanggan'}</p>
+                        <p className="text-[10px] text-orange-500 font-bold">{order.customerPhone || '-'}</p>
                       </td>
-                      <td className="px-6 py-4 font-bold">{order.table.code}</td>
-                      <td className="px-6 py-4 font-black">Rp {order.total.toLocaleString()}</td>
+                      <td className="px-6 py-4 font-bold">{order.table?.tableNumber}</td>
+                      <td className="px-6 py-4 font-black">Rp {order.totalAmount?.toLocaleString()}</td>
                       <td className="px-6 py-4 text-right">
-                        <span className="px-3 py-1 bg-gray-100 rounded-full text-[9px] font-black uppercase tracking-wider">{order.status.replace(/_/g, ' ')}</span>
+                        <span className="px-3 py-1 bg-gray-100 rounded-full text-[9px] font-black uppercase tracking-wider">{(order.orderStatus || 'N/A').replace(/_/g, ' ')}</span>
                       </td>
                     </tr>
                   ))}

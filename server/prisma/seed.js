@@ -1,97 +1,52 @@
 const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-
 const prisma = new PrismaClient();
 
 async function main() {
   // Clear existing data
+  await prisma.orderItem.deleteMany();
   await prisma.orderStatusLog.deleteMany();
   await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.menu.deleteMany();
   await prisma.category.deleteMany();
   await prisma.table.deleteMany();
-  await prisma.user.deleteMany();
 
-  console.log('Cleared existing data...');
+  // 1. Create Tables
+  const tables = await Promise.all([
+    prisma.table.create({ data: { tableNumber: 'MEJA-01' } }),
+    prisma.table.create({ data: { tableNumber: 'MEJA-02' } }),
+    prisma.table.create({ data: { tableNumber: 'MEJA-03' } }),
+    prisma.table.create({ data: { tableNumber: 'MEJA-04' } }),
+    prisma.table.create({ data: { tableNumber: 'MEJA-05' } }),
+  ]);
 
-  // Create Users
-  const hashedPassword = await bcrypt.hash('password123', 10);
-  
-  await prisma.user.createMany({
-    data: [
-      { name: 'Admin User', email: 'admin@dinescan.com', password: hashedPassword, role: 'ADMIN' },
-      { name: 'Cashier User', email: 'cashier@dinescan.com', password: hashedPassword, role: 'CASHIER' },
-      { name: 'Kitchen Staff', email: 'kitchen@dinescan.com', password: hashedPassword, role: 'KITCHEN' },
-    ],
-  });
+  // 2. Create Categories
+  const catMakanan = await prisma.category.create({ data: { name: 'Makanan', slug: 'makanan' } });
+  const catMinuman = await prisma.category.create({ data: { name: 'Minuman', slug: 'minuman' } });
+  const catDessert = await prisma.category.create({ data: { name: 'Dessert', slug: 'dessert' } });
+  const catPromo = await prisma.category.create({ data: { name: 'Promo', slug: 'promo' } });
 
-  console.log('Users created...');
-
-  // Create Tables
-  const tablesData = [
-    { tableNumber: 'TBL-001', qrCode: 'http://172.20.10.2:5173/table/TBL-001', status: 'AVAILABLE' },
-    { tableNumber: 'TBL-002', qrCode: 'http://172.20.10.2:5173/table/TBL-002', status: 'AVAILABLE' },
-    { tableNumber: 'TBL-003', qrCode: 'http://172.20.10.2:5173/table/TBL-003', status: 'AVAILABLE' },
-    { tableNumber: 'TBL-004', qrCode: 'http://172.20.10.2:5173/table/TBL-004', status: 'AVAILABLE' },
-    { tableNumber: 'TBL-005', qrCode: 'http://172.20.10.2:5173/table/TBL-005', status: 'AVAILABLE' },
-  ];
-
-  for (const table of tablesData) {
-    await prisma.table.create({
-      data: table,
-    });
-  }
-
-  console.log('Tables created...');
-
-  // Create Categories
-  const categories = [
-    { name: 'Food', slug: 'food' },
-    { name: 'Drink', slug: 'drink' },
-    { name: 'Dessert', slug: 'dessert' },
-    { name: 'Promo', slug: 'promo' },
-  ];
-
-  for (const cat of categories) {
-    await prisma.category.create({
-      data: cat,
-    });
-  }
-
-  console.log('Categories created...');
-
-  const foodCat = await prisma.category.findUnique({ where: { slug: 'food' } });
-  const drinkCat = await prisma.category.findUnique({ where: { slug: 'drink' } });
-  const dessertCat = await prisma.category.findUnique({ where: { slug: 'dessert' } });
-
-  // Create Menus
+  // 3. Create Menus
   const menus = [
-    { name: 'Nasi Goreng Special', description: 'Traditional Indonesian fried rice with egg and chicken.', price: 35000, categoryId: foodCat.id, image: 'https://images.unsplash.com/photo-1512058560366-cd2427ff6675?w=500&auto=format' },
-    { name: 'Mie Ayam Jamur', description: 'Chicken noodles with savory mushrooms.', price: 28000, categoryId: foodCat.id, image: 'https://images.unsplash.com/photo-1552611052-33e04de081de?w=500&auto=format' },
-    { name: 'Sate Ayam', description: '10 sticks of grilled chicken skewers with peanut sauce.', price: 30000, categoryId: foodCat.id, image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=500&auto=format' },
-    { name: 'Ayam Bakar Madu', description: 'Honey glazed grilled chicken.', price: 42000, categoryId: foodCat.id, image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=500&auto=format' },
-    
-    { name: 'Ice Lychee Tea', description: 'Refreshing tea with real lychee fruit.', price: 18000, categoryId: drinkCat.id, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format' },
-    { name: 'Es Kopi Susu', description: 'Palm sugar iced coffee with milk.', price: 22000, categoryId: drinkCat.id, image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&auto=format' },
-    { name: 'Orange Juice', description: 'Freshly squeezed orange juice.', price: 15000, categoryId: drinkCat.id, image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=500&auto=format' },
-    { name: 'Matcha Latte', description: 'Premium Japanese matcha with milk.', price: 25000, categoryId: drinkCat.id, image: 'https://images.unsplash.com/photo-1536496047847-663887414571?w=500&auto=format' },
-
-    { name: 'Chocolate Lava Cake', description: 'Warm chocolate cake with melting center.', price: 28000, categoryId: dessertCat.id, image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=500&auto=format' },
-    { name: 'Banana Split', description: 'Classic banana split with 3 scoops of ice cream.', price: 32000, categoryId: dessertCat.id, image: 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?w=500&auto=format' },
-    { name: 'Mango Sticky Rice', description: 'Thai style sticky rice with sweet mango.', price: 25000, categoryId: dessertCat.id, image: 'https://images.unsplash.com/photo-1618258284687-ec14e5f76264?w=500&auto=format' },
-    { name: 'Tiramisu', description: 'Classic Italian coffee-flavored dessert.', price: 35000, categoryId: dessertCat.id, image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=500&auto=format' },
+    { name: 'Nasi Goreng Spesial', price: 35000, categoryId: catMakanan.id, image: 'https://images.unsplash.com/photo-1512058560366-cd2427ff06b3?q=80&w=400' },
+    { name: 'Mie Ayam Jamur', price: 28000, categoryId: catMakanan.id, image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=400' },
+    { name: 'Ayam Bakar Madu', price: 42000, categoryId: catMakanan.id, image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=400' },
+    { name: 'Es Teh Manis', price: 5000, categoryId: catMinuman.id, image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=400' },
+    { name: 'Es Jeruk Peras', price: 12000, categoryId: catMinuman.id, image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?q=80&w=400' },
+    { name: 'Kopi Susu Gula Aren', price: 18000, categoryId: catMinuman.id, image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?q=80&w=400' },
+    { name: 'Brownies Ice Cream', price: 25000, categoryId: catDessert.id, image: 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?q=80&w=400' },
+    { name: 'Pisang Goreng Keju', price: 15000, categoryId: catDessert.id, image: 'https://images.unsplash.com/photo-1623653387945-2fd25214f8fc?q=80&w=400' },
+    { name: 'Promo Hemat A', price: 45000, categoryId: catPromo.id, image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400' },
+    { name: 'Promo Hemat B', price: 55000, categoryId: catPromo.id, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=400' },
+    { name: 'Sate Ayam 10 Tusuk', price: 30000, categoryId: catMakanan.id, image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=400' },
+    { name: 'Juice Alpukat', price: 15000, categoryId: catMinuman.id, image: 'https://images.unsplash.com/photo-1590477922224-d930a9578e07?q=80&w=400' },
   ];
 
-  for (const menu of menus) {
-    await prisma.menu.create({
-      data: menu,
-    });
+  for (const m of menus) {
+    await prisma.menu.create({ data: m });
   }
 
-  console.log('Menus created...');
-  console.log('Seeding finished!');
+  console.log('Seeding finished.');
 }
 
 main()

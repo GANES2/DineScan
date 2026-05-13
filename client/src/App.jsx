@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
@@ -15,7 +15,15 @@ import CashierDashboard from './pages/staff/CashierDashboard';
 import KitchenDashboard from './pages/staff/KitchenDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
+import { useStore } from './store/useStore';
+
 function App() {
+  const init = useStore(state => state.init);
+
+  useEffect(() => {
+    init();
+  }, []);
+
   return (
     <Router>
       <Toaster position="top-center" />

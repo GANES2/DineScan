@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Flame, Clock, CheckCircle2, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const KitchenDashboard = () => {
   const { orders, updateOrderStatus } = useStore();
 
-  const kitchenOrders = orders.filter(o => ['PAID', 'PREPARING', 'READY'].includes(o.status));
+  const kitchenOrders = orders.filter(o => ['PAID', 'PREPARING', 'READY'].includes(o.orderStatus));
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -38,8 +38,8 @@ const KitchenDashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {/* Waiting Column */}
-        <KitchenColumn title="Waiting to Prepare" count={kitchenOrders.filter(o => o.status === 'PAID').length}>
-          {kitchenOrders.filter(o => o.status === 'PAID').map(order => (
+        <KitchenColumn title="Waiting to Prepare" count={kitchenOrders.filter(o => o.orderStatus === 'PAID').length}>
+          {kitchenOrders.filter(o => o.orderStatus === 'PAID').map(order => (
             <KitchenCard 
               key={order.id} 
               order={order} 
@@ -55,8 +55,8 @@ const KitchenDashboard = () => {
         </KitchenColumn>
 
         {/* Preparing Column */}
-        <KitchenColumn title="In Production" count={kitchenOrders.filter(o => o.status === 'PREPARING').length} active>
-          {kitchenOrders.filter(o => o.status === 'PREPARING').map(order => (
+        <KitchenColumn title="In Production" count={kitchenOrders.filter(o => o.orderStatus === 'PREPARING').length} active>
+          {kitchenOrders.filter(o => o.orderStatus === 'PREPARING').map(order => (
             <KitchenCard 
               key={order.id} 
               order={order} 
@@ -72,8 +72,8 @@ const KitchenDashboard = () => {
         </KitchenColumn>
 
         {/* Ready Column */}
-        <KitchenColumn title="Ready to Serve" count={kitchenOrders.filter(o => o.status === 'READY').length}>
-          {kitchenOrders.filter(o => o.status === 'READY').map(order => (
+        <KitchenColumn title="Ready to Serve" count={kitchenOrders.filter(o => o.orderStatus === 'READY').length}>
+          {kitchenOrders.filter(o => o.orderStatus === 'READY').map(order => (
             <KitchenCard 
               key={order.id} 
               order={order} 
@@ -116,8 +116,8 @@ const KitchenCard = ({ order, onAction, actionLabel, actionIcon, btnClass, isRea
   >
     <div className="flex justify-between items-start mb-6">
       <div>
-        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{order.id}</span>
-        <h4 className="text-xl font-black text-white">{order.table.code}</h4>
+        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{order.orderNumber}</span>
+        <h4 className="text-xl font-black text-white">{order.table?.tableNumber}</h4>
         <p className="text-[10px] font-bold text-orange-500 mt-1 uppercase tracking-wider">{order.customerName}</p>
       </div>
       <div className="text-right">
@@ -133,7 +133,7 @@ const KitchenCard = ({ order, onAction, actionLabel, actionIcon, btnClass, isRea
         <div key={item.id} className="flex justify-between text-xs">
           <span className="font-bold text-gray-300">
             <span className="text-orange-500 mr-2 font-black">{item.quantity}x</span>
-            {item.name}
+            {item.menu?.name}
           </span>
         </div>
       ))}

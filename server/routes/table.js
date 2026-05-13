@@ -34,7 +34,7 @@ router.post('/', authenticate, authorize(['ADMIN']), async (req, res) => {
     const table = await prisma.table.create({
       data: {
         tableNumber,
-        qrCode: `http://localhost:5173/table/${tableNumber}`,
+        qrCode: `http://172.20.10.2:5174/table/${tableNumber}`,
       },
     });
     res.status(201).json(table);

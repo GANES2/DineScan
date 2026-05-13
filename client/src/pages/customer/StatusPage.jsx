@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const StatusPage = () => {
   const { orderId } = useParams();
   const { orders } = useStore();
-  const order = orders.find(o => o.id === orderId);
+  const order = orders.find(o => o.orderNumber === orderId);
 
   if (!order) return <div className="p-10 text-center">Order tidak ditemukan.</div>;
 
@@ -20,12 +20,12 @@ const StatusPage = () => {
     { id: 'COMPLETED', label: 'Selesai', icon: CheckCircle2, desc: 'Terima kasih sudah berkunjung!' },
   ];
 
-  const currentStepIndex = steps.findIndex(s => s.id === order.status);
+  const currentStepIndex = steps.findIndex(s => s.id === order?.orderStatus);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 pb-20">
       <div className="flex items-center gap-4 mb-8">
-        <Link to={`/table/${order.table.code}`} className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
+        <Link to={`/table/${order?.table?.tableNumber}/menu`} className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-xl font-black text-[#0B1220]">Status Pesanan</h1>
@@ -34,7 +34,7 @@ const StatusPage = () => {
       <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-gray-100 mb-8">
         <div className="flex flex-col items-center text-center mb-10">
           <div className="w-20 h-20 bg-orange-50 text-orange-500 rounded-3xl flex items-center justify-center mb-4 relative">
-            {order.status === 'PREPARING' ? <ChefHat size={40} className="animate-bounce" /> : <Clock size={40} />}
+            {order?.orderStatus === 'PREPARING' ? <ChefHat size={40} className="animate-bounce" /> : <Clock size={40} />}
             <span className="absolute -top-2 -right-2 w-6 h-6 bg-white border-4 border-orange-500 rounded-full animate-ping" />
           </div>
           <h2 className="text-2xl font-black text-[#0B1220]">{steps[currentStepIndex]?.label || order.status}</h2>
@@ -75,7 +75,7 @@ const StatusPage = () => {
              <div key={item.id} className="flex justify-between items-center text-xs">
                 <div className="flex items-center gap-3">
                   <span className="font-black text-orange-500">{item.quantity}x</span>
-                  <span className="text-gray-300">{item.name}</span>
+                  <span className="text-gray-300">{item.menu?.name}</span>
                 </div>
                 <span className="font-bold">Rp {(item.price * item.quantity).toLocaleString()}</span>
              </div>
@@ -83,7 +83,7 @@ const StatusPage = () => {
         </div>
         <div className="pt-6 border-t border-white/10 flex justify-between items-center">
            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">Total Bayar</span>
-           <span className="text-2xl font-black text-orange-500">Rp {order.total.toLocaleString()}</span>
+           <span className="text-2xl font-black text-orange-500">Rp {order?.totalAmount?.toLocaleString()}</span>
         </div>
       </div>
 
