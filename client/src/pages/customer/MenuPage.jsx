@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { ShoppingCart, Plus, Minus, Search, Utensils, Loader2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Search, Utensils, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -10,9 +10,19 @@ const MenuPage = () => {
   const { menus, cart, activeTable, setActiveTable, addToCart, updateQuantity, loading } = useStore();
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
-    if (tableCode) setActiveTable(tableCode);
+    const loadTable = async () => {
+      if (tableCode) {
+        try {
+          await setActiveTable(tableCode);
+        } catch (err) {
+          setFetchError(true);
+        }
+      }
+    };
+    loadTable();
   }, [tableCode]);
 
   const filteredMenus = (menus || []).filter(m => 
@@ -23,11 +33,24 @@ const MenuPage = () => {
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  if (loading || (!activeTable && tableCode)) {
+  // Jika sedang memuat
+  if (loading && !activeTable) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50 space-y-4">
         <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
         <p className="text-sm font-bold text-gray-400">Menghubungkan ke Meja {tableCode}...</p>
+      </div>
+    );
+  }
+
+  // Jika meja tidak ditemukan setelah loading selesai
+  if (!activeTable && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 p-10 text-center">
+        <AlertCircle className="w-16 h-16 text-red-400 mb-4" />
+        <h2 className="text-xl font-black text-[#0B1220]">Meja Tidak Ditemukan</h2>
+        <p className="text-gray-400 text-sm mt-2 mb-6">Maaf, kode meja "{tableCode}" tidak terdaftar di sistem kami.</p>
+        <Link to="/" className="px-8 py-3 bg-[#0B1220] text-white rounded-2xl font-bold text-sm">Kembali ke Beranda</Link>
       </div>
     );
   }

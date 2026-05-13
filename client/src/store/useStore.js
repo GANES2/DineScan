@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import api from '../api/axios';
 import { io } from 'socket.io-client';
 
-const socket = io('http://172.20.10.2:5001');
+const socket = io(window.location.hostname === 'localhost' 
+  ? 'http://localhost:5001' 
+  : `http://${window.location.hostname}:5001`);
 
 export const useStore = create((set, get) => ({
   menus: [],
@@ -48,10 +50,13 @@ export const useStore = create((set, get) => ({
   // --- CART ACTIONS ---
   setActiveTable: async (tableCode) => {
     try {
+      set({ loading: true });
       const tableRes = await api.get(`/tables/${tableCode}`);
-      set({ activeTable: tableRes.data });
+      set({ activeTable: tableRes.data, loading: false });
     } catch (error) {
       console.error('Table Error:', error);
+      set({ loading: false });
+      throw error;
     }
   },
 
