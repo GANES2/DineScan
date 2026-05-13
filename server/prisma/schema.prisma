@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // ADMIN, CASHIER, KITCHEN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Table {
+  id          String   @id @default(uuid())
+  tableNumber String   @unique
+  qrCode      String?
+  status      String   @default("AVAILABLE") // AVAILABLE, OCCUPIED
+  orders      Order[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  menus     Menu[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Menu {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  category    Category    @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  status      String      @default("AVAILABLE") // AVAILABLE, SOLD_OUT
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id            String           @id @default(uuid())
+  orderNumber   String           @unique
+  table         Table            @relation(fields: [tableId], references: [id])
+  tableId       String
+  totalAmount   Float
+  paymentStatus String           @default("UNPAID") // UNPAID, PENDING, PAID, FAILED, CASH_WAITING_CONFIRMATION
+  orderStatus   String           @default("WAITING_PAYMENT") // WAITING_PAYMENT, WAITING_CASHIER_PAYMENT, PAID, SENT_TO_KITCHEN, PREPARING, READY, COMPLETED, CANCELLED
+  paymentMethod String           // ONLINE, CASH
+  items         OrderItem[]
+  payments      Payment[]
+  logs          OrderStatusLog[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  menu      Menu     @relation(fields: [menuId], references: [id])
+  menuId    String
+  quantity  Int
+  price     Float
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  order         Order    @relation(fields: [orderId], references: [id])
+  orderId       String
+  amount        Float
+  method        String
+  status        String
+  transactionId String?
+  createdAt     DateTime @default(now())
+}
+
+model OrderStatusLog {
+  id        String   @id @default(uuid())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  status    String
+  createdAt DateTime @default(now())
+}
