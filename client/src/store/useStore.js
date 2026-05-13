@@ -86,6 +86,19 @@ export const useStore = create((set, get) => ({
   clearCart: () => set({ cart: [] }),
 
   // --- ORDER ACTIONS ---
+  fetchOrderByNumber: async (orderNumber) => {
+    try {
+      const res = await api.get(`/orders/number/${orderNumber}`);
+      set(state => ({
+        orders: [...state.orders.filter(o => o.orderNumber !== orderNumber), res.data]
+      }));
+      return res.data;
+    } catch (error) {
+      console.error('Fetch Order Error:', error);
+      return null;
+    }
+  },
+
   placeOrder: async (paymentMethod, customerInfo) => {
     const { cart, activeTable } = get();
     try {

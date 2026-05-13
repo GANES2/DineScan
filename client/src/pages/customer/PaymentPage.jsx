@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { CheckCircle2, CreditCard, ShieldCheck } from 'lucide-react';
@@ -6,12 +6,15 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const PaymentPage = () => {
-  const { orderId } = useParams(); // Ini adalah orderNumber (misal: ORD-123)
+  const { orderId } = useParams(); 
   const navigate = useNavigate();
-  const { orders, updateOrderStatus } = useStore();
+  const { orders, updateOrderStatus, fetchOrderByNumber } = useStore();
   
-  // Mencari berdasarkan orderNumber
   const order = orders.find(o => o.orderNumber === orderId);
+
+  useEffect(() => {
+    if (!order) fetchOrderByNumber(orderId);
+  }, [orderId, order]);
 
   const handleSuccess = async () => {
     if (order) {

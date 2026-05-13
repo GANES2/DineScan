@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { Clock, CheckCircle2, ChefHat, Utensils, ArrowLeft, Receipt, Bell } from 'lucide-react';
@@ -6,10 +6,19 @@ import { motion } from 'framer-motion';
 
 const StatusPage = () => {
   const { orderId } = useParams();
-  const { orders } = useStore();
+  const { orders, fetchOrderByNumber } = useStore();
   const order = orders.find(o => o.orderNumber === orderId);
 
-  if (!order) return <div className="p-10 text-center">Order tidak ditemukan.</div>;
+  useEffect(() => {
+    if (!order) fetchOrderByNumber(orderId);
+  }, [orderId, order]);
+
+  if (!order) return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 space-y-4">
+      <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+      <p className="text-sm font-bold text-gray-400">Mencari Pesanan {orderId}...</p>
+    </div>
+  );
 
   const steps = [
     { id: 'WAITING_CASHIER_PAYMENT', label: 'Menunggu Kasir', icon: Receipt, desc: 'Silakan lakukan pembayaran di kasir.' },
