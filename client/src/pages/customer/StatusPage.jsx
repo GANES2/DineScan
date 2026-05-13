@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { Clock, CheckCircle2, ChefHat, Utensils, ArrowLeft, Receipt, Bell } from 'lucide-react';
+import { Clock, CheckCircle2, ChefHat, Utensils, ArrowLeft, Receipt, Bell, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const StatusPage = () => {
