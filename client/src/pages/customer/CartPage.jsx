@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../../store/useStore';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, CreditCard, DollarSign } from 'lucide-react';
+import { ArrowLeft, Trash2, CreditCard, DollarSign, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -9,20 +9,31 @@ const CartPage = () => {
   const { cart, updateQuantity, removeFromCart, placeOrder, activeTable } = useStore();
   const navigate = useNavigate();
   const [customer, setCustomer] = React.useState({ name: '', phone: '' });
+  const [isPlacing, setIsPlacing] = React.useState(false);
+  
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleCheckout = (method) => {
+  const handleCheckout = async (method) => {
     if (!customer.name || !customer.phone) {
       return toast.error('Mohon isi nama dan nomor HP Anda');
     }
-    const orderId = placeOrder(method, customer);
-    if (orderId) {
-      toast.success('Pesanan berhasil dibuat!');
-      if (method === 'ONLINE') {
-        navigate(`/payment/${orderId}`);
-      } else {
-        navigate(`/status/${orderId}`);
+    
+    try {
+      setIsPlacing(true);
+      const order = await placeOrder(method, customer);
+      
+      if (order && order.orderNumber) {
+        toast.success('Pesanan berhasil dibuat!');
+        if (method === 'ONLINE') {
+          navigate(`/payment/${order.orderNumber}`);
+        } else {
+          navigate(`/status/${order.orderNumber}`);
+        }
       }
+    } catch (error) {
+      toast.error('Gagal membuat pesanan. Silakan coba lagi.');
+    } finally {
+      setIsPlacing(false);
     }
   };
 
@@ -33,7 +44,7 @@ const CartPage = () => {
       </div>
       <h2 className="text-xl font-bold mb-2">Keranjang Kosong</h2>
       <p className="text-gray-400 text-sm text-center mb-8">Wah, perutmu masih kosong nih. Yuk tambah makanan!</p>
-      <Link to={activeTable ? `/table/${activeTable.code}` : '/'} className="btn-primary w-full max-w-xs">Kembali ke Menu</Link>
+      <Link to={activeTable ? `/table/${activeTable.tableNumber}/menu` : '/'} className="px-8 py-3 bg-[#0B1220] text-white rounded-2xl font-bold text-sm">Kembali ke Menu</Link>
     </div>
   );
 
@@ -48,7 +59,6 @@ const CartPage = () => {
 
       <div className="space-y-4">
         {cart.map(item => (
-          // ... (existing cart items mapping)
           <div key={item.id} className="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100 flex gap-4">
             <img src={item.image} alt={item.name} className="w-20 h-20 rounded-2xl object-cover" />
             <div className="flex-grow flex flex-col justify-between py-1">
@@ -69,7 +79,6 @@ const CartPage = () => {
         ))}
       </div>
 
-      {/* CUSTOMER INFO FORM */}
       <div className="mt-10 bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-4">
         <h3 className="text-sm font-black uppercase tracking-widest text-[#0B1220]">Informasi Pelanggan</h3>
         <div className="space-y-3">
@@ -99,17 +108,19 @@ const CartPage = () => {
         
         <div className="grid grid-cols-2 gap-4">
           <button 
+            disabled={isPlacing}
             onClick={() => handleCheckout('CASH')}
-            className="p-4 bg-gray-900 text-white rounded-2xl flex flex-col items-center gap-1 hover:bg-black transition-all"
+            className="p-4 bg-gray-900 text-white rounded-2xl flex flex-col items-center gap-1 hover:bg-black transition-all disabled:opacity-50"
           >
-            <DollarSign size={20} className="text-orange-500" />
+            {isPlacing ? <Loader2 className="animate-spin" size={20} /> : <DollarSign size={20} className="text-orange-500" />}
             <span className="text-[10px] font-black uppercase">Bayar di Kasir</span>
           </button>
           <button 
+            disabled={isPlacing}
             onClick={() => handleCheckout('ONLINE')}
-            className="p-4 bg-orange-500 text-white rounded-2xl flex flex-col items-center gap-1 hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
+            className="p-4 bg-orange-500 text-white rounded-2xl flex flex-col items-center gap-1 hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
           >
-            <CreditCard size={20} />
+            {isPlacing ? <Loader2 className="animate-spin" size={20} /> : <CreditCard size={20} />}
             <span className="text-[10px] font-black uppercase">Bayar Online</span>
           </button>
         </div>
