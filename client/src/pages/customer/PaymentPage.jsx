@@ -3,19 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { CheckCircle2, CreditCard, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const PaymentPage = () => {
-  const { orderId } = useParams();
+  const { orderId } = useParams(); // Ini adalah orderNumber (misal: ORD-123)
   const navigate = useNavigate();
   const { orders, updateOrderStatus } = useStore();
-  const order = orders.find(o => o.id === orderId);
+  
+  // Mencari berdasarkan orderNumber
+  const order = orders.find(o => o.orderNumber === orderId);
 
-  const handleSuccess = () => {
-    updateOrderStatus(orderId, 'PAID');
-    navigate(`/status/${orderId}`);
+  const handleSuccess = async () => {
+    if (order) {
+      // Mengirimkan ID database yang asli ke server
+      await updateOrderStatus(order.id, 'PAID');
+      toast.success('Pembayaran Berhasil!');
+      navigate(`/status/${orderId}`);
+    }
   };
 
-  if (!order) return <div className="p-10 text-center">Order tidak ditemukan.</div>;
+  if (!order) return <div className="p-10 text-center text-white bg-[#0B1220] min-h-screen">Order {orderId} tidak ditemukan.</div>;
 
   return (
     <div className="min-h-screen bg-[#0B1220] p-8 flex flex-col items-center justify-center text-white">
@@ -39,7 +46,7 @@ const PaymentPage = () => {
           </div>
           <div className="flex justify-between items-center">
             <span className="text-xs font-bold text-gray-400">Amount</span>
-            <span className="text-lg font-black text-orange-500">Rp {order.total.toLocaleString()}</span>
+            <span className="text-lg font-black text-orange-500">Rp {order.totalAmount?.toLocaleString()}</span>
           </div>
         </div>
 
@@ -57,7 +64,7 @@ const PaymentPage = () => {
           className="w-full bg-[#0B1220] text-white p-5 rounded-3xl mt-10 font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all"
         >
           <CheckCircle2 size={18} className="text-orange-500" />
-          Bayar Sekarang
+          Simulasi Bayar Berhasil
         </button>
         <p className="text-center text-[10px] text-gray-400 mt-6 italic">Ini adalah halaman simulasi pembayaran.</p>
       </motion.div>
